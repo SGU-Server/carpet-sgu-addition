@@ -22,11 +22,6 @@ loom {
 }
 
 repositories {
-    // 2. 可选的 BMCLAPI 镜像站
-    maven {
-        name = "BMCLAPI"
-        url = "https://bmclapi2.bangbang93.com/maven"
-    }
     maven { url 'https://masa.dy.fi/maven' }
     maven { url "https://api.modrinth.com/maven" }
 }
