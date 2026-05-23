@@ -2,16 +2,10 @@ package org.carpet.sgu.carpetSguAddition.mixin;
 
 import carpet.CarpetSettings;
 import carpet.patches.EntityPlayerMPFake;
-import carpet.patches.FakeClientConnection;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.network.NetworkSide;
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
-import net.minecraft.network.packet.s2c.play.EntityPositionSyncS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntitySetHeadYawS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.UserCache;
@@ -25,6 +19,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 
 import java.util.Optional;
 import java.util.Set;
@@ -45,19 +42,43 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
         return null;
     }
 
-    @Inject(method = "createFake", at = @At("HEAD"), cancellable = true, remap = false)
-    private static void onCreateFake(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying, CallbackInfoReturnable<Boolean> cir) {
+    @ModifyExpressionValue(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/Optional;orElse(Ljava/lang/Object;)Ljava/lang/Object;"))
+    private static Object ensureProfileNonNull(Object original) {
+        if (!SguSettings.betterFakePlayerProcess) {
+            return original;
+        }
+        if (original == null) {
+            return new GameProfile(new java.util.UUID(0, 0), ""); // Dummy profile just to bypass the null check
+        }
+        return original;
+    }
+
+    @ModifyExpressionValue(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Ljava/util/Optional;get()Ljava/lang/Object;"), remap = false)
+    private static Object modifyFetchedProfile(Object original, @Local(argsOnly = true) GameProfile finalGP) {
+        if (!SguSettings.betterFakePlayerProcess) {
+            return original;
+        }
+        GameProfile fetched = (GameProfile) original;
+        GameProfile newProfile = new GameProfile(finalGP.getId(), finalGP.getName());
+        newProfile.getProperties().putAll(fetched.getProperties());
+        return newProfile;
+    }
+
+    @Inject(method = "createFake", at = @At(value = "INVOKE", target = "Lcom/mojang/authlib/GameProfile;getName()Ljava/lang/String;"), cancellable = true)
+    private static void beforeSpawningAdd(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying, CallbackInfoReturnable<Boolean> cir, @Local(name = "gameprofile") LocalRef<GameProfile> gameprofileRef, @Local(name = "finalGP") LocalRef<GameProfile> finalGPRef) {
         if (!SguSettings.betterFakePlayerProcess) {
             return;
         }
-        cir.setReturnValue(betterCreateFake(username, server, pos, yaw, pitch, dimensionId, gamemode, flying));
-    }
-
-    @org.spongepowered.asm.mixin.Unique
-    private static boolean betterCreateFake(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying) {
-        ServerWorld worldIn = server.getWorld(dimensionId);
 
         java.util.UUID offlineUuid = Uuids.getOfflinePlayerUuid(username);
+        
+        // --- Compatibility Check ---
+        // If the gameprofile is already assigned the offline UUID (e.g., by LMS or offline server mode),
+        // we yield and skip SGU's complex file-checking override to respect the preceding logic.
+        if (gameprofileRef.get() != null && gameprofileRef.get().getId().equals(offlineUuid)) {
+            return;
+        }
+
         java.nio.file.Path playerDataDir = server.getSavePath(net.minecraft.util.WorldSavePath.PLAYERDATA);
 
         GameProfile onlineProfile = null;
@@ -113,52 +134,15 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
                 gameprofile = onlineProfile;
             } else {
                 if (!CarpetSettings.allowSpawningOfflinePlayers) {
-                    return false;
+                    cir.setReturnValue(false);
+                    return;
                 } else {
                     gameprofile = new GameProfile(offlineUuid, username);
                 }
             }
         }
-        GameProfile finalGP = gameprofile;
 
-        String name = gameprofile.getName();
-        spawning.add(name);
-
-        fetchGameProfile(name).whenCompleteAsync((p, t) -> {
-            spawning.remove(name);
-            if (t != null) {
-                return;
-            }
-
-            GameProfile current = finalGP;
-            if (p.isPresent()) {
-                GameProfile fetched = p.get();
-                current = new GameProfile(finalGP.getId(), finalGP.getName());
-                current.getProperties().putAll(fetched.getProperties());
-            }
-
-            EntityPlayerMPFake instance = EntityPlayerMPFake.respawnFake(server, worldIn, current, SyncedClientOptions.createDefault());
-
-            instance.fixStartingPosition = () -> instance.refreshPositionAndAngles(pos.x, pos.y, pos.z, (float) yaw, (float) pitch);
-
-            server.getPlayerManager().onPlayerConnect(new FakeClientConnection(NetworkSide.SERVERBOUND), instance, new ConnectedClientData(current, 0, instance.getClientOptions(), false));
-
-            instance.teleport(worldIn, pos.x, pos.y, pos.z, Set.of(), (float) yaw, (float) pitch, true);
-            instance.setHealth(20.0F);
-
-            ((EntityPlayerMPFakeMixin) (Object) instance).unsetRemoved();
-
-            instance.getAttributeInstance(EntityAttributes.STEP_HEIGHT).setBaseValue(0.6F);
-            instance.changeGameMode(gamemode);
-
-            server.getPlayerManager().sendToDimension(new EntitySetHeadYawS2CPacket(instance, (byte) (instance.getHeadYaw() * 256 / 360)), dimensionId);
-            server.getPlayerManager().sendToDimension(EntityPositionSyncS2CPacket.create(instance), dimensionId);
-
-            instance.getDataTracker().set(net.minecraft.entity.player.PlayerEntity.PLAYER_MODEL_PARTS, (byte) 0x7f);
-            instance.getAbilities().allowFlying = flying;
-
-        }, server);
-
-        return true;
+        gameprofileRef.set(gameprofile);
+        finalGPRef.set(gameprofile);
     }
 }
