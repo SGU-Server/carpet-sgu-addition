@@ -1,9 +1,19 @@
 pluginManagement {
     repositories {
-        maven {
-            name = 'Fabric'
-            url = 'https://maven.fabricmc.net/'
-        }
+        maven { url 'https://maven.fabricmc.net/' }
+        maven { url 'https://maven.kikugie.dev/releases' }
         gradlePluginPortal()
     }
 }
+
+plugins {
+    id 'dev.kikugie.stonecutter' version '0.9.4'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+stonecutter.create(rootProject) {
+    versions '1.21.6', '26.1'
+    vcsVersion = '1.21.6'
+}
+
+rootProject.name = 'carpet-sgu-addition'

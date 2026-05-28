@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu.carpetSguAddition.mixin;
 
 import net.minecraft.entity.Entity;
@@ -9,3 +10,7 @@ public interface EntityAccessor {
     @Invoker("unsetRemoved")
     void invokeUnsetRemoved();
 }
+//?}
+
+
+

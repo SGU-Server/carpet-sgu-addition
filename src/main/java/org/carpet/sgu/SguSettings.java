@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu;
 
 import carpet.api.settings.Rule;
@@ -20,3 +21,11 @@ public class SguSettings {
     )
     public static boolean reverseBlockPosTraversal = false;
 }
+
+//?}
+
+
+
+
+
+

@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu.carpetSguAddition.mixin;
 
 import carpet.logging.Logger;
@@ -39,3 +40,8 @@ public class ServerWorldMixin
         }
     }
 }
+
+//?}
+
+
+

@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu.carpetSguAddition.mixin;
 
 import com.google.common.collect.AbstractIterator;
@@ -44,3 +45,8 @@ public class BlockPosMixin
         });
     }
 }
+
+//?}
+
+
+

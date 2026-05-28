@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu.carpetSguAddition.mixin;
 
 import carpet.CarpetSettings;
@@ -146,3 +147,8 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
         finalGPRef.set(gameprofile);
     }
 }
+
+//?}
+
+
+

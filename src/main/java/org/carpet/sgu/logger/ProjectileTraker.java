@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu.logger;
 import carpet.logging.Logger;
 import net.minecraft.entity.Entity;
@@ -65,3 +66,8 @@ public class ProjectileTraker extends Logger
         return null;
     }
 }
+
+//?}
+
+
+

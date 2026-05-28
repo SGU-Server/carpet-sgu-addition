@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu;
 
 import carpet.CarpetExtension;
@@ -37,3 +38,8 @@ public class SguCarpetServer implements CarpetExtension, ModInitializer {
 
     }
 }
+
+//?}
+
+
+

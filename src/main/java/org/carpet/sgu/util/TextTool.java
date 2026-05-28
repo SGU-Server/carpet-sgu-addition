@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu.util;
 
 import net.minecraft.util.math.Vec3d;
@@ -89,3 +90,7 @@ public class TextTool
         return "(%.3f, %.3f, %.3f)".formatted(vec.x, vec.y, vec.z);
     }
 }
+//?}
+
+
+

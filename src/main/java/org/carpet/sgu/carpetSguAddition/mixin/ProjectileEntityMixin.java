@@ -1,3 +1,4 @@
+//? if <=1.21.6 {
 package org.carpet.sgu.carpetSguAddition.mixin;
 
 
@@ -57,3 +58,8 @@ public abstract class ProjectileEntityMixin
         }
     }
 }
+
+//?}
+
+
+

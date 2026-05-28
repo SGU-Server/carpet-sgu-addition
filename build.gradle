@@ -1,6 +1,12 @@
 plugins {
-    id 'fabric-loom' version '1.15-SNAPSHOT'
     id 'maven-publish'
+}
+
+def unobfuscated = project.minecraft_version.startsWith("26.")
+if (unobfuscated) {
+    apply plugin: 'net.fabricmc.fabric-loom'
+} else {
+    apply plugin: 'net.fabricmc.fabric-loom-remap'
 }
 
 version = project.mod_version
@@ -28,13 +34,26 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    
+    if (!unobfuscated) {
+        if (project.yarn_mappings != "") {
+            mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+        } else {
+            mappings loom.officialMojangMappings()
+        }
+    }
+    
+    def modImpl = unobfuscated ? "implementation" : "modImplementation"
 
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    // 推荐使用 modrinth 仓库，因为它能更好地处理 Carpet 的依赖
-    modImplementation "maven.modrinth:carpet:${project.carpet_core_version}"
-}
+    "${modImpl}" "net.fabricmc:fabric-loader:${project.loader_version}"
+    "${modImpl}" "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    if (unobfuscated) {
+        "${modImpl}" "carpet:fabric-carpet:${project.carpet_core_version}"
+    } else {
+        "${modImpl}" "maven.modrinth:carpet:${project.carpet_core_version}"
+    }
+    }
 
 processResources {
     inputs.property "version", project.version
@@ -50,7 +69,7 @@ processResources {
     }
 }
 
-def targetJavaVersion = 21
+def targetJavaVersion = project.minecraft_version.startsWith("26.") ? 25 : 21
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
