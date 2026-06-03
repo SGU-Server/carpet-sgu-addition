@@ -65,6 +65,7 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
         return newProfile;
     }
 
+
     @Inject(method = "createFake", at = @At(value = "INVOKE", target = "Lcom/mojang/authlib/GameProfile;getName()Ljava/lang/String;"), cancellable = true)
     private static void beforeSpawningAdd(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying, CallbackInfoReturnable<Boolean> cir, @Local(name = "gameprofile") LocalRef<GameProfile> gameprofileRef, @Local(name = "finalGP") LocalRef<GameProfile> finalGPRef) {
         if (!SguSettings.betterFakePlayerProcess) {
@@ -72,11 +73,20 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
         }
 
         java.util.UUID offlineUuid = Uuids.getOfflinePlayerUuid(username);
-        
+
         // --- Compatibility Check ---
-        // If the gameprofile is already assigned the offline UUID (e.g., by LMS or offline server mode),
-        // we yield and skip SGU's complex file-checking override to respect the preceding logic.
-        if (gameprofileRef.get() != null && gameprofileRef.get().getId().equals(offlineUuid)) {
+        // If the gameprofile is already assigned the offline UUID, we check if LMS explicitly forced it.
+        boolean lmsForcingOffline = false;
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("carpet-lms-addition")) {
+            try {
+                Class<?> lmsClass = Class.forName("cn.nm.lms.carpetlmsaddition.bot.FakePlayerSpawner");
+                java.lang.reflect.Method m = lmsClass.getMethod("shouldForceOfflineProfile", String.class);
+                lmsForcingOffline = (Boolean) m.invoke(null, username);
+            } catch (Exception e) {
+                // Ignore exception
+            }
+        }
+        if (lmsForcingOffline) {
             return;
         }
 
