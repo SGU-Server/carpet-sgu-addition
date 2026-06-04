@@ -62,6 +62,14 @@ processResources {
     inputs.property "loader_version", project.loader_version
     filteringCharset "UTF-8"
 
+    filesMatching("*.mixins.json") {
+        if (project.minecraft_version.startsWith("26.")) {
+            filter { String line ->
+                line.contains("BlockPosMixin") || line.contains("EntityAccessor") || line.contains("ProjectileEntityMixin") || line.contains("ServerWorldMixin") ? null : line
+            }
+        }
+    }
+
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
                 "minecraft_version": project.minecraft_version,
@@ -103,3 +111,4 @@ publishing {
     repositories {
     }
 }
+

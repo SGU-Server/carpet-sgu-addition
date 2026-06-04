@@ -1,8 +1,5 @@
 //? if <=1.21.6 {
 package org.carpet.sgu.carpetSguAddition.mixin;
-
-import carpet.CarpetSettings;
-import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.registry.RegistryKey;
@@ -23,26 +20,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import carpet.CarpetSettings;
+import carpet.patches.EntityPlayerMPFake;
 
 @Mixin(value = EntityPlayerMPFake.class)
 public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
-
     public EntityPlayerMPFakeMixin(MinecraftServer server, ServerWorld world, GameProfile profile, SyncedClientOptions clientOptions) {
         super(server, world, profile, clientOptions);
     }
-
     @Shadow
     private static Set<String> spawning;
-
     @Shadow
     private static CompletableFuture<Optional<GameProfile>> fetchGameProfile(final String name) {
         return null;
     }
-
     @ModifyExpressionValue(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/Optional;orElse(Ljava/lang/Object;)Ljava/lang/Object;"))
     private static Object ensureProfileNonNull(Object original) {
         if (!SguSettings.betterFakePlayerProcess) {
@@ -53,7 +47,6 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
         }
         return original;
     }
-
     @ModifyExpressionValue(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Ljava/util/Optional;get()Ljava/lang/Object;"), remap = false)
     private static Object modifyFetchedProfile(Object original, @Local(argsOnly = true) GameProfile finalGP) {
         if (!SguSettings.betterFakePlayerProcess) {
@@ -64,37 +57,26 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
         newProfile.getProperties().putAll(fetched.getProperties());
         return newProfile;
     }
-
-
     @Inject(method = "createFake", at = @At(value = "INVOKE", target = "Lcom/mojang/authlib/GameProfile;getName()Ljava/lang/String;"), cancellable = true)
     private static void beforeSpawningAdd(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying, CallbackInfoReturnable<Boolean> cir, @Local(name = "gameprofile") LocalRef<GameProfile> gameprofileRef, @Local(name = "finalGP") LocalRef<GameProfile> finalGPRef) {
         if (!SguSettings.betterFakePlayerProcess) {
             return;
         }
-
         java.util.UUID offlineUuid = Uuids.getOfflinePlayerUuid(username);
-
-        // --- Compatibility Check ---
-        // If the gameprofile is already assigned the offline UUID, we check if LMS explicitly forced it.
         boolean lmsForcingOffline = false;
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("carpet-lms-addition")) {
             try {
                 Class<?> lmsClass = Class.forName("cn.nm.lms.carpetlmsaddition.bot.FakePlayerSpawner");
                 java.lang.reflect.Method m = lmsClass.getMethod("shouldForceOfflineProfile", String.class);
                 lmsForcingOffline = (Boolean) m.invoke(null, username);
-            } catch (Exception e) {
-                // Ignore exception
-            }
+            } catch (Exception e) {}
         }
         if (lmsForcingOffline) {
             return;
         }
-
         java.nio.file.Path playerDataDir = server.getSavePath(net.minecraft.util.WorldSavePath.PLAYERDATA);
-
         GameProfile onlineProfile = null;
         boolean onlineUserIsPresent = false;
-
         UserCache.setUseRemote(true);
         try {
             if (server.getUserCache() != null) {
@@ -105,25 +87,20 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
         } finally {
             UserCache.setUseRemote(server.isDedicated() && server.isOnlineMode());
         }
-
         if (onlineProfile != null && onlineProfile.getName().equals(username)) {
             onlineUserIsPresent = true;
         } else {
             onlineProfile = null;
         }
-
         java.nio.file.Path offlinePath = playerDataDir.resolve(offlineUuid.toString() + ".dat");
         boolean offlineExists = java.nio.file.Files.exists(offlinePath);
-
         boolean onlineExists = false;
         java.nio.file.Path onlinePath = null;
         if (onlineUserIsPresent) {
             onlinePath = playerDataDir.resolve(onlineProfile.getId().toString() + ".dat");
             onlineExists = java.nio.file.Files.exists(onlinePath);
         }
-
         GameProfile gameprofile = null;
-
         if (offlineExists && onlineExists) {
             try {
                 long offlineTime = java.nio.file.Files.getLastModifiedTime(offlinePath).toMillis();
@@ -152,13 +129,8 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
                 }
             }
         }
-
         gameprofileRef.set(gameprofile);
         finalGPRef.set(gameprofile);
     }
 }
-
 //?}
-
-
-

@@ -14,7 +14,7 @@ carpet_core_version = "1.4.176"
 
 ["26.1"]
 minecraft_version = "26.1"
-minecraft_dependency = "~26.1"
+minecraft_dependency = ">=26.1 <=26.1.2"
 yarn_mappings = ""
 fabric_version = "0.145.3+26.1.1"
 carpet_core_version = "26.1+v260401"
