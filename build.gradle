@@ -9,7 +9,7 @@ if (unobfuscated) {
     apply plugin: 'net.fabricmc.fabric-loom-remap'
 }
 
-version = project.mod_version
+version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
 base {
