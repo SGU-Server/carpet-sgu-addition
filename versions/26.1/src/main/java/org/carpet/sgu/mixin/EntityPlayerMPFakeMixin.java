@@ -1,6 +1,7 @@
-package org.carpet.sgu.carpetSguAddition.mixin;
+package org.carpet.sgu.mixin;
 import carpet.CarpetSettings;
 import carpet.patches.EntityPlayerMPFake;
+import carpet.script.language.Sys;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -11,8 +12,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.server.players.OldUsersConverter;
 import org.carpet.sgu.SguSettings;
+import static org.carpet.sgu.compat.LmsIntegrationHelper.shouldForceOfflineProfile;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,6 +25,9 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import static java.nio.file.Files.readAttributes;
+import java.nio.file.attribute.BasicFileAttributes;
+
 
 @Mixin(value = EntityPlayerMPFake.class, remap = false)
 public abstract class EntityPlayerMPFakeMixin extends ServerPlayer {
@@ -37,17 +41,12 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayer {
         if (!SguSettings.betterFakePlayerProcess) {
             return original;
         }
-        return original.whenComplete((p, t) -> {
-            if (t != null) {
-                System.out.println("[SGU-DEBUG] fetchGameProfile failed exceptionally: " + t);
-            } else {
-                System.out.println("[SGU-DEBUG] fetchGameProfile completed. profile=" + (p == null ? "null" : p.name()));
-            }
-        }).thenApply(p -> {
-            if (p == null) {
-                System.out.println("[SGU-DEBUG] Profile is null, cannot merge properties!");
+        return original.thenApply(p -> {
+            if (p == null || p.name().isEmpty()) {
+                System.out.println("p == null");
                 return gameprofile;
             }
+            System.out.println("test");
             return new GameProfile(gameprofile.id(), gameprofile.name(), p.properties());
         });
     }
@@ -63,49 +62,49 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayer {
         if (!SguSettings.betterFakePlayerProcess) {
             return originalUuid;
         }
-        boolean lmsForcingOffline = false;
-        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("carpet-lms-addition")) {
-            try {
-                Class<?> lmsClass = Class.forName("cn.nm.lms.carpetlmsaddition.bot.FakePlayerSpawner");
-                java.lang.reflect.Method m = lmsClass.getMethod("shouldForceOfflineProfile", String.class);
-                lmsForcingOffline = (Boolean) m.invoke(null, username);
-            } catch (Exception e) {}
-        }
+        boolean lmsForcingOffline = shouldForceOfflineProfile(username);
         if (lmsForcingOffline) {
             return originalUuid;
         } else {
             return new java.util.UUID(0, 0);
         }
     }
+
+    /**
+     * Directly queries Mojang servers via GameProfileRepository.findProfileByName,
+     * bypassing UserCache / OldUsersConverter caches.
+     * Returns null if the username doesn't correspond to a real online account,
+     * or if the returned name doesn't match the input case-sensitively.
+     */
+    private static GameProfile resolveOnlineProfile(MinecraftServer server, String username) {
+        try {
+            var result = server.services().profileRepository().findProfileByName(username);
+            if (result.isPresent()) {
+                var nameAndId = result.get();
+                // Strict case-sensitive comparison: Mojang API is case-insensitive,
+                // but returns the canonical name. Only match if casing is exact.
+                if (nameAndId.name().equals(username)) {
+                    return new GameProfile(nameAndId.id(), nameAndId.name());
+                }
+            }
+        } catch (Exception e) {
+            // Lookup failed, return null
+        }
+        return null;
+    }
+
     @Inject(method = "createFake", at = @At(value = "INVOKE", target = "Lcom/mojang/authlib/GameProfile;name()Ljava/lang/String;"), cancellable = true)
     private static void beforeSpawningAdd(String username, MinecraftServer server, Vec3 pos, double yaw, double pitch, ResourceKey<Level> dimensionId, GameType gamemode, boolean flying, CallbackInfoReturnable<Boolean> cir, @Local(name = "gameprofile") LocalRef<GameProfile> gameprofileRef) {
         if (!SguSettings.betterFakePlayerProcess) {
             return;
         }
         java.util.UUID offlineUuid = UUIDUtil.createOfflinePlayerUUID(username);
-        boolean lmsForcingOffline = false;
-        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("carpet-lms-addition")) {
-            try {
-                Class<?> lmsClass = Class.forName("cn.nm.lms.carpetlmsaddition.bot.FakePlayerSpawner");
-                java.lang.reflect.Method m = lmsClass.getMethod("shouldForceOfflineProfile", String.class);
-                lmsForcingOffline = (Boolean) m.invoke(null, username);
-            } catch (Exception e) {}
-        }
-        if (lmsForcingOffline) {
+        if (shouldForceOfflineProfile(username)) {
             return;
         }
         java.nio.file.Path playerDataDir = server.getWorldPath(net.minecraft.world.level.storage.LevelResource.PLAYER_DATA_DIR);
-        GameProfile onlineProfile = null;
-        boolean onlineUserIsPresent = false;
-        try {
-            java.util.UUID resolved = OldUsersConverter.convertMobOwnerIfNecessary(server, username);
-            if (resolved != null && !resolved.equals(offlineUuid)) {
-                onlineProfile = new GameProfile(resolved, username);
-                onlineUserIsPresent = true;
-            }
-        } catch (Exception e) {
-            onlineProfile = null;
-        }
+        GameProfile onlineProfile = resolveOnlineProfile(server, username);
+        boolean onlineUserIsPresent = (onlineProfile != null);
         java.nio.file.Path offlinePath = playerDataDir.resolve(offlineUuid.toString() + ".dat");
         boolean offlineExists = java.nio.file.Files.exists(offlinePath);
         boolean onlineExists = false;
@@ -117,8 +116,8 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayer {
         GameProfile gameprofile = null;
         if (offlineExists && onlineExists) {
             try {
-                long offlineTime = java.nio.file.Files.getLastModifiedTime(offlinePath).toMillis();
-                long onlineTime = java.nio.file.Files.getLastModifiedTime(onlinePath).toMillis();
+                long offlineTime = readAttributes(offlinePath, BasicFileAttributes.class).creationTime().toMillis();
+                long onlineTime = readAttributes(onlinePath, BasicFileAttributes.class).creationTime().toMillis();
                 if (offlineTime <= onlineTime) {
                     gameprofile = new GameProfile(offlineUuid, username);
                 } else {

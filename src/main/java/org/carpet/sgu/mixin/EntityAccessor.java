@@ -1,5 +1,5 @@
 //? if <=1.21.6 {
-package org.carpet.sgu.carpetSguAddition.mixin;
+package org.carpet.sgu.mixin;
 
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;

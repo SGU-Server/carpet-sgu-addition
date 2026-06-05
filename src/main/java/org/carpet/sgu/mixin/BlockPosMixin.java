@@ -1,5 +1,5 @@
 //? if <=1.21.6 {
-package org.carpet.sgu.carpetSguAddition.mixin;
+package org.carpet.sgu.mixin;
 
 import com.google.common.collect.AbstractIterator;
 import net.minecraft.util.math.BlockPos;

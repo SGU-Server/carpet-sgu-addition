@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "org.carpet.sgu.carpetSguAddition.mixin",
+  "package": "org.carpet.sgu.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BlockPosMixin",
