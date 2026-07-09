@@ -65,7 +65,7 @@ processResources {
     filesMatching("*.mixins.json") {
         if (project.minecraft_version.startsWith("26.")) {
             filter { String line ->
-                line.contains("BlockPosMixin") || line.contains("EntityAccessor") || line.contains("ProjectileEntityMixin") || line.contains("ServerWorldMixin") ? null : line
+                line.contains("BlockPosMixin") || line.contains("EntityAccessor") ? null : line
             }
         }
     }
