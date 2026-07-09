@@ -4,9 +4,7 @@ import carpet.CarpetExtension;
 import carpet.CarpetServer;
 import carpet.logging.LoggerRegistry;
 import net.fabricmc.api.ModInitializer;
-//? if <=1.21.6 {
 import org.carpet.sgu.logger.ProjectileTraker;
-//?}
 
 import java.util.Map;
 
@@ -34,9 +32,7 @@ public class SguCarpetServer implements CarpetExtension, ModInitializer {
     @Override
     public void registerLoggers()
     {
-//? if <=1.21.6 {
         var logger = ProjectileTraker.create();
         LoggerRegistry.registerLogger(logger.getLogName(), logger);
-//?}
     }
 }
