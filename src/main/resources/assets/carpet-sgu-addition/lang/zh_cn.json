@@ -4,5 +4,6 @@
   "carpet.rule.betterFakePlayerProcess.desc": "更好的假人名字处理",
 
   "carpet.rule.reverseBlockPosTraversal.name": "方块坐标迭代器反向",
-  "carpet.rule.reverseBlockPosTraversal.desc": "方块坐标迭代器反向"
+  "carpet.rule.reverseBlockPosTraversal.desc": "方块坐标迭代器反向",
+  "logger.bots": "在玩家列表中显示真人玩家和假人数量。"
 }
