@@ -8,9 +8,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
 import org.carpet.sgu.logger.ProjectileTraker;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,42 +16,48 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Projectile.class)
 public abstract class ProjectileEntityMixin {
-    @Shadow
-    @Nullable
-    public abstract Entity getOwner();
-
     @Unique
-    private boolean rof$logged = false;
+    private boolean sgu$logged = false;
 
     @Inject(method = "tick", at = @At("TAIL"))
-    private void tick(CallbackInfo ci) {
+    private void sgu$trackProjectile(CallbackInfo ci) {
+        if (sgu$logged) {
+            return;
+        }
+
         Entity entity = (Entity) (Object) this;
         if (!(entity.level() instanceof ServerLevel)) {
             return;
         }
-        if (rof$logged) {
+
+        Projectile projectile = (Projectile) (Object) this;
+        if (!(projectile.getOwner() instanceof ServerPlayer owner)) {
             return;
         }
 
         Logger logger = LoggerRegistry.getLogger(ProjectileTraker.NAME);
-        if (logger instanceof ProjectileTraker projectileTraker) {
-            logger.log((option, player) -> {
-                if (player == getOwner()) {
-                    if (option.equals("all")) {
-                        rof$logged = true;
-                        projectileTraker.addNormalEntity((ServerPlayer) player, entity);
-                        return null;
-                    }
-                    if (option.equals("pearlCannon") && (Object) this instanceof ThrownEnderpearl pearl) {
-                        if (pearl.getDeltaMovement().multiply(1, 0, 1).length() >= 10) {
-                            rof$logged = true;
-                            projectileTraker.addNormalEntity((ServerPlayer) player, entity);
-                            return null;
-                        }
-                    }
-                }
-                return null;
-            });
+        if (!(logger instanceof ProjectileTraker projectileTraker)) {
+            return;
         }
+
+        logger.log((option, player) -> {
+            if (player != owner) {
+                return null;
+            }
+
+            if ("all".equals(option)) {
+                sgu$logged = true;
+                projectileTraker.addNormalEntity(owner, entity);
+                return null;
+            }
+
+            if ("pearlCannon".equals(option) && projectile instanceof ThrownEnderpearl) {
+                if (entity.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D).length() >= 10.0D) {
+                    sgu$logged = true;
+                    projectileTraker.addNormalEntity(owner, entity);
+                }
+            }
+            return null;
+        });
     }
 }

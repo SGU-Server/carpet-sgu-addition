@@ -17,10 +17,6 @@ public class ProjectileTraker extends Logger {
 
     public final Map<UUID, UUID> entityTrackerMap = new HashMap<>();
 
-    public ProjectileTraker(Field acceleratorField, String logName, String def, String[] options, boolean strictOptions) {
-        super(acceleratorField, logName, def, options, strictOptions);
-    }
-
     public int addNormalEntity(ServerPlayer player, Entity entity) {
         if (player != null && entity != null) {
             entityTrackerMap.put(player.getUUID(), entity.getUUID());
@@ -33,9 +29,8 @@ public class ProjectileTraker extends Logger {
         if (server == null || uuid == null) {
             return null;
         }
-
-        for (ServerLevel level : server.getAllLevels()) {
-            Entity entity = level.getEntity(uuid);
+        for (ServerLevel world : server.getAllLevels()) {
+            Entity entity = world.getEntityInAnyDimension(uuid);
             if (entity != null) {
                 return entity;
             }
@@ -43,12 +38,19 @@ public class ProjectileTraker extends Logger {
         return null;
     }
 
-    public Entity getEntity(ServerPlayer player) {
+    public Entity getEntity(MinecraftServer server, ServerPlayer player) {
+        if (player == null) {
+            return null;
+        }
         UUID entityId = entityTrackerMap.get(player.getUUID());
         if (entityId == null) {
             return null;
         }
-        return getEntity(player.server, entityId);
+        return getEntity(server, entityId);
+    }
+
+    public ProjectileTraker(Field acceleratorField, String logName, String def, String[] options, boolean strictOptions) {
+        super(acceleratorField, logName, def, options, strictOptions);
     }
 
     public static Logger create() {
@@ -60,8 +62,7 @@ public class ProjectileTraker extends Logger {
                 new String[] {"all", "pearlCannon"},
                 true
             );
-        } catch (ReflectiveOperationException exception) {
-            throw new RuntimeException("Unable to create projectileTraker logger", exception);
-        }
+        } catch (Exception ignored) {}
+        return null;
     }
 }
