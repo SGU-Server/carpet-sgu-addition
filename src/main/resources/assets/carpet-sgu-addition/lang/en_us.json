@@ -4,5 +4,7 @@
   "carpet.rule.betterFakePlayerProcess.desc": "better fake player process",
 
   "carpet.rule.reverseBlockPosTraversal.name": "reverseBlockPosTraversal",
-  "carpet.rule.reverseBlockPosTraversal.desc": ""
+  "carpet.rule.reverseBlockPosTraversal.desc": "",
+
+  "logger.bots": "Shows real player and bot counts in the tab list."
 }
