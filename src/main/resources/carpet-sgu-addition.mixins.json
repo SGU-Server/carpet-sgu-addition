@@ -4,10 +4,17 @@
   "package": "org.carpet.sgu.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbstractDecorationEntityDamageMixin",
     "BlockPosMixin",
+    "DecoratedPotBlockMixin",
     "EntityAccessor",
+    "ItemFrameDamageMixin",
+    "PlayerEntityMixin",
     "ProjectileEntityMixin",
     "ServerWorldMixin",
+    "ServerPlayerGameModeMixin",
+    "PinkPetalsBlockMixin",
+    "SporeBlossomBlockMixin",
     "EntityPlayerMPFakeMixin"
   ],
   "client": [

@@ -5,5 +5,11 @@
 
   "carpet.rule.reverseBlockPosTraversal.name": "方块坐标迭代器反向",
   "carpet.rule.reverseBlockPosTraversal.desc": "方块坐标迭代器反向",
-  "logger.bots": "在玩家列表中显示真人玩家和假人数量。"
+  "logger.bots": "在玩家列表中显示真人玩家和假人数量。",
+
+  "carpet.rule.itemFrameCombatDamageProtection.name": "展示框战斗伤害保护",
+  "carpet.rule.itemFrameCombatDamageProtection.desc": "阻止重锤、风弹和三叉戟破坏展示框、荧光展示框与饰纹陶罐。",
+
+  "carpet.rule.sporeBlossomAnyBlock.name": "孢子花与粉红色花簇可放置于任意方块",
+  "carpet.rule.sporeBlossomAnyBlock.desc": "允许孢子花和粉红色花簇放置并保持在任意方块上。"
 }
