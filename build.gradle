@@ -69,7 +69,7 @@ processResources {
             }
         } else {
             filter { String line ->
-                line.contains("PinkPetalsBlockMixin") || line.contains("SporeBlossomBlockMixin") ? null : line
+                line.contains("PinkPetalsBlockMixin") || line.contains("SporeBlossomBlockMixin") || line.contains("ServerPlayerGameModeSpectatorPortalMixin") ? null : line
             }
         }
     }
