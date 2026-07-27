@@ -5,5 +5,8 @@
 
   "carpet.rule.reverseBlockPosTraversal.name": "方块坐标迭代器反向",
   "carpet.rule.reverseBlockPosTraversal.desc": "方块坐标迭代器反向",
-  "logger.bots": "在玩家列表中显示真人玩家和假人数量。"
+  "logger.bots": "在玩家列表中显示真人玩家和假人数量。",
+
+  "carpet.rule.spectatorPortalTeleport.name": "旁观者传送门传送",
+  "carpet.rule.spectatorPortalTeleport.desc": "允许旁观者右键地狱传送门和末地传送门直接传送，行为与新版原版一致。"
 }

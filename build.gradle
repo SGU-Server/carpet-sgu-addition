@@ -67,6 +67,10 @@ processResources {
             filter { String line ->
                 line.contains("BlockPosMixin") || line.contains("EntityAccessor") ? null : line
             }
+        } else {
+            filter { String line ->
+                line.contains("ServerPlayerGameModeSpectatorPortalMixin") ? null : line
+            }
         }
     }
 

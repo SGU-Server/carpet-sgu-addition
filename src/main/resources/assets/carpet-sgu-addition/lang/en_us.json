@@ -6,5 +6,8 @@
   "carpet.rule.reverseBlockPosTraversal.name": "reverseBlockPosTraversal",
   "carpet.rule.reverseBlockPosTraversal.desc": "",
 
-  "logger.bots": "Shows real player and bot counts in the tab list."
+  "logger.bots": "Shows real player and bot counts in the tab list.",
+
+  "carpet.rule.spectatorPortalTeleport.name": "spectatorPortalTeleport",
+  "carpet.rule.spectatorPortalTeleport.desc": "Allows spectators to right-click nether portals and end portals to teleport through them, matching newer vanilla behavior."
 }
