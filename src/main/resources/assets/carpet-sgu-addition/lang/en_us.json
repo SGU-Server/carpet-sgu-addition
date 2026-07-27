@@ -6,5 +6,11 @@
   "carpet.rule.reverseBlockPosTraversal.name": "reverseBlockPosTraversal",
   "carpet.rule.reverseBlockPosTraversal.desc": "",
 
-  "logger.bots": "Shows real player and bot counts in the tab list."
+  "logger.bots": "Shows real player and bot counts in the tab list.",
+
+  "carpet.rule.itemFrameCombatDamageProtection.name": "itemFrameCombatDamageProtection",
+  "carpet.rule.itemFrameCombatDamageProtection.desc": "Prevents mace, wind charge, and trident damage from breaking item frames, glow item frames, and decorated pots.",
+
+  "carpet.rule.sporeBlossomAnyBlock.name": "sporeBlossomAnyBlock",
+  "carpet.rule.sporeBlossomAnyBlock.desc": "Allows spore blossoms and pink petals to survive when placed against any block."
 }

@@ -17,4 +17,14 @@ public class SguSettings {
             categories = {FEATURE, EXPERIMENTAL,SGU}
     )
     public static boolean reverseBlockPosTraversal = false;
+
+    @Rule(
+            categories = {FEATURE, EXPERIMENTAL, SGU}
+    )
+    public static boolean itemFrameCombatDamageProtection = false;
+
+    @Rule(
+            categories = {FEATURE, EXPERIMENTAL, SGU}
+    )
+    public static boolean sporeBlossomAnyBlock = false;
 }
