@@ -27,4 +27,9 @@ public class SguSettings {
             categories = {FEATURE, EXPERIMENTAL, SGU}
     )
     public static boolean sporeBlossomAnyBlock = false;
+
+    @Rule(
+            categories = {FEATURE, EXPERIMENTAL, SGU}
+    )
+    public static boolean spectatorPortalTeleport = false;
 }

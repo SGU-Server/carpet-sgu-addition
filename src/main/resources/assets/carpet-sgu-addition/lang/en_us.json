@@ -12,5 +12,8 @@
   "carpet.rule.itemFrameCombatDamageProtection.desc": "Prevents mace, wind charge, and trident damage from breaking item frames, glow item frames, and decorated pots.",
 
   "carpet.rule.sporeBlossomAnyBlock.name": "sporeBlossomAnyBlock",
-  "carpet.rule.sporeBlossomAnyBlock.desc": "Allows spore blossoms and pink petals to survive when placed against any block."
+  "carpet.rule.sporeBlossomAnyBlock.desc": "Allows spore blossoms and pink petals to survive when placed against any block.",
+
+  "carpet.rule.spectatorPortalTeleport.name": "spectatorPortalTeleport",
+  "carpet.rule.spectatorPortalTeleport.desc": "Allows spectators to right-click nether portals and end portals to teleport through them, matching newer vanilla behavior."
 }

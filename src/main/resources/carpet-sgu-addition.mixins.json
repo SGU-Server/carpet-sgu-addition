@@ -15,6 +15,7 @@
     "ServerPlayerGameModeMixin",
     "PinkPetalsBlockMixin",
     "SporeBlossomBlockMixin",
+    "ServerPlayerGameModeSpectatorPortalMixin",
     "EntityPlayerMPFakeMixin"
   ],
   "client": [
