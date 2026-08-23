@@ -9,6 +9,7 @@
     "DecoratedPotBlockMixin",
     "EntityAccessor",
     "ItemFrameDamageMixin",
+    "PlayerProfileAccessor",
     "PlayerEntityMixin",
     "ProjectileEntityMixin",
     "ServerWorldMixin",
