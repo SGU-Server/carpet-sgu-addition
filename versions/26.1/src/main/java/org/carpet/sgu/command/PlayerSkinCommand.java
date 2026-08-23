@@ -14,7 +14,6 @@ import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Util;
-import org.carpet.sgu.mixin.PlayerProfileAccessor;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -62,12 +61,13 @@ public final class PlayerSkinCommand {
             }
 
             GameProfile currentProfile = fakePlayer.getGameProfile();
-            GameProfile replacement = new GameProfile(
-                    currentProfile.id(),
-                    currentProfile.name(),
-                    skinProfile.properties()
-            );
-            ((PlayerProfileAccessor) fakePlayer).carpet_sgu_addition$setGameProfile(replacement);
+            try {
+                FakePlayerSkinManager.remember(server, fakePlayerName, skinPlayerName, skinProfile);
+                FakePlayerSkinManager.applySavedSkin(server, fakePlayer);
+            } catch (java.io.IOException exception) {
+                source.sendFailure(Component.literal("Failed to save the skin for " + fakePlayerName + ": " + exception.getMessage()));
+                return;
+            }
             refreshPlayerInfo(server, fakePlayer, currentProfile.id());
             source.sendSuccess(() -> Component.literal("Set " + fakePlayerName + "'s skin to " + skinPlayerName), false);
         }, server);
