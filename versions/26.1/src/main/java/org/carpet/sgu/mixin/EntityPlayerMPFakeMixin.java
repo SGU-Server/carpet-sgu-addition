@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -27,12 +28,25 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import static java.nio.file.Files.readAttributes;
 import java.nio.file.attribute.BasicFileAttributes;
+import org.carpet.sgu.command.FakePlayerSkinManager;
 
 
 @Mixin(value = EntityPlayerMPFake.class, remap = false)
 public abstract class EntityPlayerMPFakeMixin extends ServerPlayer {
     public EntityPlayerMPFakeMixin(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions) {
         super(server, world, profile, clientOptions);
+    }
+
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void applySavedSkin(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions, boolean shadow, CallbackInfo ci) {
+        if (shadow) {
+            return;
+        }
+        try {
+            FakePlayerSkinManager.applySavedSkin(server, (EntityPlayerMPFake) (Object) this);
+        } catch (java.io.IOException exception) {
+            System.err.println("[carpet-sgu-addition] Failed to load saved skin for " + profile.name() + ": " + exception.getMessage());
+        }
     }
     @Shadow
     private static Set<String> spawning;
