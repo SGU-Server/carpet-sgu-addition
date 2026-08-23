@@ -83,7 +83,14 @@ public final class PlayerSkinCommand {
     }
 
     private static void refreshPlayerInfo(MinecraftServer server, ServerPlayer fakePlayer, java.util.UUID profileId) {
-        server.getPlayerList().broadcastAll(new ClientboundPlayerInfoRemovePacket(List.of(profileId)));
-        server.getPlayerList().broadcastAll(ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(fakePlayer)));
+        var chunkSource = fakePlayer.level().getChunkSource();
+        chunkSource.removeEntity(fakePlayer);
+        try {
+            server.getPlayerList().broadcastAll(new ClientboundPlayerInfoRemovePacket(List.of(profileId)));
+            server.getPlayerList().broadcastAll(ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(fakePlayer)));
+        } finally {
+            // Re-pairing recreates the client player entity, which otherwise keeps its old cached player-info object.
+            chunkSource.addEntity(fakePlayer);
+        }
     }
 }
