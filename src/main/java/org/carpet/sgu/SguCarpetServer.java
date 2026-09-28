@@ -3,7 +3,9 @@ package org.carpet.sgu;
 import carpet.CarpetExtension;
 import carpet.CarpetServer;
 import carpet.logging.LoggerRegistry;
+import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.api.ModInitializer;
+import org.carpet.sgu.command.PlayerSkinCommand;
 import org.carpet.sgu.logger.BotsLogger;
 import org.carpet.sgu.logger.ProjectileTraker;
 
@@ -24,6 +26,12 @@ public class SguCarpetServer implements CarpetExtension, ModInitializer {
     public void onGameStarted() {
         // Register SguSettings class with Carpet
         CarpetServer.settingsManager.parseSettingsClass(SguSettings.class);
+    }
+
+    @Override
+    @SuppressWarnings({"rawtypes", "unchecked", "removal"})
+    public void registerCommands(CommandDispatcher dispatcher) {
+        PlayerSkinCommand.register(dispatcher);
     }
 
     @Override
