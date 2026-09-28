@@ -14,5 +14,8 @@
   "carpet.rule.sporeBlossomAnyBlock.desc": "允许孢子花和粉红色花簇放置并保持在任意方块上。",
 
   "carpet.rule.spectatorPortalTeleport.name": "旁观者传送门传送",
-  "carpet.rule.spectatorPortalTeleport.desc": "允许旁观者右键地狱传送门和末地传送门直接传送，行为与新版原版一致。"
+  "carpet.rule.spectatorPortalTeleport.desc": "允许旁观者右键地狱传送门和末地传送门直接传送，行为与新版原版一致。",
+
+  "carpet.rule.fireworkRocketInVoid.name": "烟花火箭可在虚空中存在",
+  "carpet.rule.fireworkRocketInVoid.desc": "防止烟花火箭在世界下方被移除。"
 }

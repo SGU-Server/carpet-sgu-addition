@@ -8,6 +8,7 @@
     "BlockPosMixin",
     "DecoratedPotBlockMixin",
     "EntityAccessor",
+    "FireworkRocketInVoidMixin",
     "ItemFrameDamageMixin",
     "PlayerEntityMixin",
     "ProjectileEntityMixin",
